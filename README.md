@@ -1,0 +1,2 @@
+# DeliveryMap
+Aplikacja za pomocą kamery zczytuje tekst pisany czy drukowany i przy pomocy google vision api rozpoznaje zadany wzorzec, w tym wypadku szkocki kod pocztowy i dodaje pinezkę do mapy. Można też wpisać kod pocztowy w pole tekstowe, w tym przypadku nie ma ograniczenia do szkockiego kodu pocztowego, można wpisać dowolny adres rozpoznawany przez google geocoding api.

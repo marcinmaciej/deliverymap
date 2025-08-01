@@ -1,0 +1,79 @@
+/* Optional: Makes the sample page fill the window. */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+
+    background-color: #fff;
+}
+
+
+
+
+#navPanel {
+    position: relative;
+    z-index: 1000;
+    left: 0;
+    top:0;
+    margin: 0;
+    padding:0;
+    width: auto;
+    height: auto;
+    box-shadow: 5px 5px 5px grey
+}
+
+#drivers-container{
+    position: absolute;
+    z-index:999;
+    margin:2px;
+    padding:5px;
+    width:100%;
+    height:auto;
+}
+.drivers{
+    float:right;
+    margin:2px;
+}
+
+#map-container{
+    position: absolute;
+    height:95%;
+    width:100%;
+}
+
+/* Always set the map height explicitly to define the size of the div
+  * element that contains the map. */
+
+#map {
+    height: 100%;
+}
+
+#snapshotImg {
+    position: absolute;
+    margin:10px 10px;
+    border:2px solid white;
+    padding: 0;
+    width: auto;
+    height: auto;
+    diplay: none;
+    z-index: 1200;
+}
+input[type="file"] {
+    position: absolute;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+    top:0;
+    left:0;
+}
+
+video {
+    position: absolute;
+    margin:10px 10px;
+    border:2px solid white;
+    box-shadow: 5px 5px 5px grey;
+}
+
+.ui-effects-transfer {
+    border: 1px dotted black;
+}
