@@ -16,19 +16,33 @@ const RapidoCoords = {
     lat: 55.958176,
     lng: -3.189332
 }
+const videoConstraints = {
+    video: {
+        width: { max: 480 },
+        height: { max: 240 },
+        facingMode: 'environment'
 
+    },
+    audio: false
+};
+
+const myColors = ['white', 'red', 'green', 'blue', 'black'];
+
+
+
+const googleVisionURL = "https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDen4z_3zNLBoITzl-j6Qb6A25l86qcnGk";
 const locations = document.getElementById("location");
 const buttonGo = document.getElementById("btngo");
 const buttonOCR = document.getElementById("btnocr");
 const videoPane = document.getElementById("videoPane");
 const snapshotImg = document.getElementById("snapshotImg");
 
-const deliveryTime = 4500000;
+//const deliveryTime = 4500000;
 
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 let isVideoDisplayed = false;
-let localMediaStream = null;
+let localMediaStreamPromise = null;
 let mm;
 let timestamp;
 let description;
@@ -166,12 +180,12 @@ orders.on("child_added", function (childSnapshot) {
 
 });*/
 
-sendImage = function (image) {
-    const url = "https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDen4z_3zNLBoITzl-j6Qb6A25l86qcnGk";
+sendImage = function (image, url) {
+
 
    // const lastIndexRE = /Prev(\.|,)*\sorders/i;
 
-    const postcodeRE = /eh[0-9\s]{2,}[a-z]{2}/ig;
+    const postcodeRE = /eh[0-9\s]{2,}[a-z]{2}/i;
 
     const request = {
         "requests": [
@@ -203,36 +217,50 @@ sendImage = function (image) {
                     text = JSON.stringify(data),
                     tempOrder;
 
+                //console.log(data);
+/*
                 if (data !== undefined) {
+                    if(data.responses[0] !== undefined){
                     description = data.responses[0].textAnnotations[0].description;
+                    console.log(description);
+                    }
                 }
 
+*/
                 //var lastIndex = text.match(lastIndexRE);
                 //var custData = text.substring(text.indexOf("Customer details"), text.lastIndexOf(lastIndex[0]));
-                custPostcode = text.match(postcodeRE);
-                //var custDataArray = custData.split("\\n");
-                console.log(custPostcode);
+                if(text.responses !== undefined) {
 
-                if (custPostcode !== null) {
+                    custPostcode = text.match(postcodeRE)[0];
 
+                    //var custDataArray = custData.split("\\n");
+                    //console.log(custPostcode);
 
-                    timestamp = Date.now();
+                    if (custPostcode !== null && custPostcode !== undefined) {
 
-                    tempOrder = {
-                        timestamp: timestamp,
-                        postcode: custPostcode[0],
-                        description: description
-                    };
+                        addMarker(custPostcode, custPostcode /* jako tytuł wyświetlajacy sie po najechaniu kursorem na marker */);
 
-                    orders.push(tempOrder).then(function () {
+                        /*
+                                            timestamp = Date.now();
 
-                        addMarker(tempOrder.postcode, tempOrder.description);
-                        localStorage.setItem(timestamp, JSON.stringify(tempOrder));
-                    });
+                                            tempOrder = {
+                                                timestamp: timestamp,
+                                                postcode: custPostcode[0],
+                                                description: description
+                                            };
 
-                } else {
-                    console.log("Response is null, cannot read text or no postcode.");
+                                            orders.push(tempOrder).then(function () {
 
+                                                addMarker(tempOrder.postcode, tempOrder.description);
+                                                localStorage.setItem(timestamp, JSON.stringify(tempOrder));
+                                            });
+                        */
+                    } else {
+                        console.log("Post code is undefined");
+
+                    }
+                }else{
+                    console.log("Vision retuned nothing. Probably there was no text in the image.")
                 }
             }
         }
@@ -241,12 +269,33 @@ sendImage = function (image) {
 };
 
 toggleVideo = function () {
+
     isVideoDisplayed = !isVideoDisplayed;
+
     $(videoPane).toggle("slide");
-    if (isVideoDisplayed) {
-        videoPane.play();
-    } else {
-        videoPane.pause();
+
+    const playPromise = videoPane.play();
+
+    if(playPromise !== undefined) {
+        if (isVideoDisplayed) {
+
+            playPromise.then(() => {
+                console.log('Camera activated!');
+
+            }).catch( error => {
+                console.error(error);
+            });
+
+        } else {
+
+            playPromise.then(() => {
+                videoPane.pause();
+                console.log('Camera deactivated!');
+
+            }).catch( error => {
+                console.error(error);
+            });
+        }
     }
 };
 
@@ -254,45 +303,49 @@ errorCallback = function () {
 
 };
 
-/*snapshot = function () {
-    var image;
-    if (localMediaStream) {
+snapshot = function () {
+    let image;
+
+    if (localMediaStreamPromise !== undefined) {
 
         canvas.width = videoPane.videoWidth;
-        cmarkeranvas.height = videoPane.videoHeight;
+        canvas.height = videoPane.videoHeight;
 
         ctx.drawImage(videoPane, 0, 0, videoPane.videoWidth, videoPane.videoHeight);
 
-        image = canvas.toDataURL("image/webp", 1);
-        snapshotImg.src = canvas.toDataURL("image/webp", 1);
+        image = canvas.toDataURL("image/png", 1);
+        snapshotImg.src = canvas.toDataURL("image/png", 1);
         snapshotImg.style.display = "block";
 
         $(snapshotImg).effect("drop", "right");
 
-        sendImage(image.replace("data:image/webp;base64,", ""));
+        sendImage(image.replace("data:image/png;base64,", ""), googleVisionURL);
     }
-};*/
+};
 
-/*videoPane.addEventListener("click", function () {
+videoPane.addEventListener("click", function () {
     snapshot();
     toggleVideo();
-}, false);*/
+}, false);
 
-// Not showing vendor prefixes or code that works cross-browser.
-/*navigator.getUserMedia({video: {mandatory: {maxWidth: 480, maxHeight: 240}}}, function (stream) {
-    videoPane.src = window.URL.createObjectURL(stream);
-    localMediaStream = stream;
-}, errorCallback);*/
+let getMedia = async () => {
 
-getLocations = function () {
+    localMediaStreamPromise = await navigator.mediaDevices.getUserMedia(videoConstraints);
+
+    if(localMediaStreamPromise !== undefined) {
+        videoPane.srcObject = localMediaStreamPromise;
+    }
+}
+
+getLocations =  () => {
     var locationsArray = locations.value.split(",");
     var i;
     var location;
-    if (locations.value !== "") {
+    if (locationsArray.length > 0) {
         for (i in locationsArray) {
 
             location = locationsArray[i].trim().toUpperCase();
-            addMarker(location);
+            addMarker(location, location /* jako tytuł wyświetlany po najechaniu kursorem na marker */);
         }
     }
 
@@ -311,14 +364,12 @@ buttonOCR.addEventListener("click", function () {
 
 window.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
-        if (locations.value === "" && isVideoDisplayed) {
+        if (isVideoDisplayed && locations.value.length < 4) {
             snapshot();
-        } else if (locations.value === "" && !isVideoDisplayed) {
-            toggleVideo();
-        } else {
+        }else{
             getLocations();
         }
-    } else if (event.key === "Backspace") {
+    } else if (event.key === " " /* zank spacji */) {
         toggleVideo();
     }
 }, true);
@@ -337,18 +388,24 @@ mobileTakePhoto = function (evt) {
 
         var fr = new FileReader();
         fr.onload = function (ev) {
-            sendImage((ev.target.result).replace("data:image/jpeg;base64,", ""));
+            sendImage((ev.target.result).replace("data:image/jpeg;base64,", ""), googleVisionURL);
         }
         fr.readAsDataURL(file);
     }
-}
+};
 
 document.getElementById("mobile-camera-button").addEventListener("change", mobileTakePhoto, false);
 
 initMap = function () {
+
     geocoder = new google.maps.Geocoder();
 
-
+    const pinRapido = new google.maps.marker.PinElement({
+        glyph: "R",
+        glyphColor: myColors[0],
+        background: myColors[3],
+        scale: 1.3
+    });
 
     map = new google.maps.Map(document.getElementById("map"), {
         center: mapCenterLatLng,
@@ -356,12 +413,7 @@ initMap = function () {
         mapId: "deliverymap"
     });
 
-    const pinRapido = new google.maps.marker.PinElement({
-        glyph: "R",
-        glyphColor: "white",
-        background: "blue",
-        scale: 1.3
-    });
+
 
     const marker = new google.maps.marker.AdvancedMarkerElement({
         position: RapidoCoords,
@@ -378,9 +430,9 @@ addMarker = function (address, title) {
 
             const pinOrders = new google.maps.marker.PinElement({
                 glyph: address,
-                glyphColor: 'black',
+                glyphColor: myColors[4],
                 scale: 1.2,
-                background: 'red'
+                background: myColors[1]
             });
 
             // jak bedzie potrzeba wycentrowac na adresie: map.setCenter(results[0].geometry.location);
@@ -414,3 +466,5 @@ stopDefault = function (evt) {
     evt.stopPropagation();
     evt.preventDefault();
 };
+
+getMedia();
