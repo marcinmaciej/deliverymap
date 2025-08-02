@@ -364,9 +364,9 @@ addMarker = function (address, title) {
     geocoder.geocode({"address": address}, function (results, status) {
         if (status == "OK") {
 
-            const pinOrders = new google.maps.marker.PinELement({
+            const pinOrders = new google.maps.marker.PinElement({
                 glyph: address,
-                glyphColor: 'white',
+                glyphColor: 'black',
                 scale: 1.2,
                 background: 'red'
             });
