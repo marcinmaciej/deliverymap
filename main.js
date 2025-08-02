@@ -1,27 +1,41 @@
 /**
- * Created by Marcin on 2016-12-26.
+ * Created by Marcin Guziołek on 2016-12-26.
+ * Refactoring by Marcin Guziołek started on 2025-08-01
  */
 
-var map;
+let map;
+const mapZoom = 12;
 var geocoder;
 
-var locations = document.getElementById("location");
-var buttonGo = document.getElementById("btngo");
-var buttonOCR = document.getElementById("btnocr");
-var videoPane = document.getElementById("videoPane");
-var snapshotImg = document.getElementById("snapshotImg");
+const mapCenterLatLng = {
+    lat: 55.937350,
+    lng: -3.178122
+}
 
-var deliveryTime = 4500000;
+const RapidoCoords = {
+    lat: 55.958176,
+    lng: -3.189332
+}
 
-var canvas = document.querySelector("canvas");
-var ctx = canvas.getContext("2d");
-var isVideoDisplayed = false;
-var localMediaStream = null;
-var mm;
-var timestamp;
-var description;
-var orders,
+const locations = document.getElementById("location");
+const buttonGo = document.getElementById("btngo");
+const buttonOCR = document.getElementById("btnocr");
+const videoPane = document.getElementById("videoPane");
+const snapshotImg = document.getElementById("snapshotImg");
+
+const deliveryTime = 4500000;
+
+const canvas = document.querySelector("canvas");
+const ctx = canvas.getContext("2d");
+let isVideoDisplayed = false;
+let localMediaStream = null;
+let mm;
+let timestamp;
+let description;
+let orders,
     drivers;
+
+
 
 mm = window.matchMedia("(min-width:768px");
 
@@ -153,13 +167,13 @@ orders.on("child_added", function (childSnapshot) {
 });*/
 
 sendImage = function (image) {
-    var url = "https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDen4z_3zNLBoITzl-j6Qb6A25l86qcnGk";
+    const url = "https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDen4z_3zNLBoITzl-j6Qb6A25l86qcnGk";
 
-   // var lastIndexRE = /Prev(\.|,)*\sorders/i;
+   // const lastIndexRE = /Prev(\.|,)*\sorders/i;
 
-    var postcodeRE = /eh[0-9\s]{2,}[a-z]{2}/ig;
+    const postcodeRE = /eh[0-9\s]{2,}[a-z]{2}/ig;
 
-    var request = {
+    const request = {
         "requests": [
             {
                 "features": [
@@ -183,7 +197,7 @@ sendImage = function (image) {
 
             headers: {"Content-Type": "application/json"},
             success: function (data, textStatus, jqXHR) {
-                var i,
+                let i,
                     title,
                     custPostcode,
                     text = JSON.stringify(data),
@@ -245,7 +259,7 @@ errorCallback = function () {
     if (localMediaStream) {
 
         canvas.width = videoPane.videoWidth;
-        canvas.height = videoPane.videoHeight;
+        cmarkeranvas.height = videoPane.videoHeight;
 
         ctx.drawImage(videoPane, 0, 0, videoPane.videoWidth, videoPane.videoHeight);
 
@@ -330,17 +344,15 @@ mobileTakePhoto = function (evt) {
 }
 
 document.getElementById("mobile-camera-button").addEventListener("change", mobileTakePhoto, false);
+
 initMap = function () {
     geocoder = new google.maps.Geocoder();
 
-    var myLatLng = {
-        lat: 55.958176,
-        lng: -3.189332
-    }
+
 
     map = new google.maps.Map(document.getElementById("map"), {
-        center: {lat: 55.958176, lng: -3.189332},
-        zoom: 13,
+        center: mapCenterLatLng,
+        zoom: mapZoom,
         mapId: "deliverymap"
     });
 
@@ -351,8 +363,8 @@ initMap = function () {
         scale: 1.3
     });
 
-    var marker = new google.maps.marker.AdvancedMarkerElement({
-        position: myLatLng,
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: RapidoCoords,
         map: map,
         title: "Here I am. Rapido Cafe",
         content: pinRapido.element
@@ -373,7 +385,7 @@ addMarker = function (address, title) {
 
             // jak bedzie potrzeba wycentrowac na adresie: map.setCenter(results[0].geometry.location);
             map.setCenter(results[0].geometry.location); // centruje na dodany adres
-            var marker = new google.maps.marker.AdvancedMarkerElement({
+            let orderMarker = new google.maps.marker.AdvancedMarkerElement({
                 map: map,
                 position: results[0].geometry.location,
                 content: pinOrders.element,
@@ -388,7 +400,7 @@ addMarker = function (address, title) {
                  }*/
             });
 
-            marker.addListener('click', function () {
+            orderMarker.addListener('click', function () {
                 this.setMap(null);
             });
 
@@ -397,6 +409,7 @@ addMarker = function (address, title) {
         }
     });
 };
+
 stopDefault = function (evt) {
     evt.stopPropagation();
     evt.preventDefault();
