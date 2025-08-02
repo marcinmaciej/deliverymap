@@ -340,14 +340,22 @@ initMap = function () {
 
     map = new google.maps.Map(document.getElementById("map"), {
         center: {lat: 55.958176, lng: -3.189332},
-        zoom: 13
+        zoom: 13,
+        mapId: "deliverymap"
     });
 
-    var marker = new google.maps.Marker({
+    const pinRapido = new google.maps.marker.PinElement({
+        glyph: "R",
+        glyphColor: "white",
+        background: "blue",
+        scale: 1.3
+    });
+
+    var marker = new google.maps.marker.AdvancedMarkerElement({
         position: myLatLng,
         map: map,
         title: "Here I am. Rapido Cafe",
-        label: "R"
+        content: pinRapido.element
     });
 };
 
@@ -355,28 +363,37 @@ addMarker = function (address, title) {
     var offsetTime;
     geocoder.geocode({"address": address}, function (results, status) {
         if (status == "OK") {
-            // jak bedzie porzeba wycentrowac na adresie: map.setCenter(results[0].geometry.location);
-            var marker = new google.maps.Marker({
+
+            const pinOrders = new google.maps.marker.PinELement({
+                glyph: address,
+                glyphColor: 'white',
+                scale: 1.2,
+                background: 'red'
+            });
+
+            // jak bedzie potrzeba wycentrowac na adresie: map.setCenter(results[0].geometry.location);
+            map.setCenter(results[0].geometry.location); // centruje na dodany adres
+            var marker = new google.maps.marker.AdvancedMarkerElement({
                 map: map,
                 position: results[0].geometry.location,
-                label: address,
+                content: pinOrders.element,
                 title: title/*,
                  icon: {
                  path: google.maps.SymbolPath.CIRCLE,
-                 fillColor: "#000099",
+                 fillColor: '#000099',
                  fillOpacity: 1,
                  scale: 5,
-                 strokeColor: "#000099",
+                 strokeColor: '#000099',
                  strokeWeight: 3
                  }*/
             });
 
-            marker.addListener("click", function () {
+            marker.addListener('click', function () {
                 this.setMap(null);
             });
 
         } else {
-            alert("Map api error: " + status + " for " + address);
+            alert('Map api error: ' + status + ' for ' + address);
         }
     });
 };
