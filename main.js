@@ -213,11 +213,11 @@ sendImage = function (image, url) {
             success: function (data, textStatus, jqXHR) {
                 let i,
                     title,
+                    text,
                     custPostcode,
-                    text = JSON.stringify(data),
                     tempOrder;
 
-                //console.log(data);
+                console.log(data);
 /*
                 if (data !== undefined) {
                     if(data.responses[0] !== undefined){
@@ -229,14 +229,18 @@ sendImage = function (image, url) {
 */
                 //var lastIndex = text.match(lastIndexRE);
                 //var custData = text.substring(text.indexOf("Customer details"), text.lastIndexOf(lastIndex[0]));
-                if(text.responses !== undefined) {
+                if(data.responses[0].hasOwnProperty('textAnnotations')) {
 
-                    custPostcode = text.match(postcodeRE)[0];
+                    text = JSON.stringify(data);
+
+                    custPostcode = text.match(postcodeRE);
 
                     //var custDataArray = custData.split("\\n");
                     //console.log(custPostcode);
 
-                    if (custPostcode !== null && custPostcode !== undefined) {
+                    if (custPostcode !== null) {
+
+                        custPostcode = custPostcode[0];
 
                         addMarker(custPostcode, custPostcode /* jako tytuł wyświetlajacy sie po najechaniu kursorem na marker */);
 
@@ -369,7 +373,7 @@ window.addEventListener("keydown", function (event) {
         }else{
             getLocations();
         }
-    } else if (event.key === " " /* zank spacji */) {
+    } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
         toggleVideo();
     }
 }, true);
